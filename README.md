@@ -1,5 +1,5 @@
 # NeuralNetwork
-My first knock on an Artificial Neural Network with configurable layer and node counts. I followed the step by step instructions found in ![here](https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/).
+My first knock on an Artificial Neural Network with configurable layer and node counts. I followed the step by step instructions found in [here](https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/).
 
 
 # Importing
@@ -8,7 +8,7 @@ You can import the script using:
 
     import neuralnetwork
 
-# Instanciation:
+# Instanciation
 
 You can instanciate the network just like any object:
 
