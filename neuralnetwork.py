@@ -94,11 +94,13 @@ class Network:
             
     def training(self, trainingSet):
         error = 99999
-        while error > 1e-10:
+        while error > 1e-6:
+            iterationError = 0
             for input, target in trainingSet.items():
                 self.forwardPass(input)
-                error = self.calculateError(target)
+                iterationError += self.calculateError(target)
                 self.backpropagateError(target)
+            error = iterationError / len(trainingSet)    
             
     def getOutput(self):
         return [node.out for node in self.layers[-1].nodes]
@@ -106,22 +108,3 @@ class Network:
     def getInput(self):
         return [node.out for node in self.layers[0].nodes]   
         
-if __name__ == "__main__":
-    trainingSet = {(0.1, 0.3): (0.3, 0.1), (0.2, 0.1): (0.1, 0.2), (0.6, 0.3): (0.3, 0.6)}
-    x = Network([2, 3, 2], [0.3, 0.2], 0.5)
-    
-    x.training(trainingSet)
-    for key, value in trainingSet.items():
-        x.forwardPass(key)
-        print("Input: {0}".format(x.getInput()))
-        print("Final Output: {0}".format(x.getOutput()))
-        print("Final Error: {0}".format(x.calculateError(value)))
-    
-    for i in range(len(x.layers)):
-        print("---------\nLayer {0}".format(i))
-        for node in x.layers[i].nodes:
-            print("Node ID: {0}".format(hex(id(node))))
-        print("Bias: {0}".format(x.layers[i].bias))
-    print("---------\nNetwork has {0} connections:".format(len(x.connections)))
-    for i in x.connections:
-        print("Connection from {0} to {1} with weight {2}".format(hex(id(i.start)), hex(id(i.end)), i.weight))
