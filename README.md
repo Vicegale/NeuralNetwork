@@ -24,6 +24,15 @@ This will instanciate a network similar to the image below:
 In order to train the network, you must compile the existing Input/Output pairs into a dictionary, like the following example:
 
     andGateTrainingSet = {(0, 0): (0,), (0, 1): (0,), (1, 0): (0,), (1, 1): (1,)}
+    network.training(andGateTrainingSet)
+    
+Currently, the network executes the training loop until the average error of the training set is less than 1e-06.
+
+# Debugging
+
+If for some reason the network isn't training, you can toggle the periodic error display. It will show you the average error of the training set every 10000 iterations:
+    
+    network.debug(True)
     
 # Post-Training usage:
 
@@ -38,3 +47,38 @@ Output can be retrieved using the getOutput() function:
     x = network.getOutput()
     
 Note, however, that the output is returned as a list.
+
+# Saving and Loading Networks
+
+To avoid training a network everytime you use it, you may need to save it. For that, you can use pickle.
+
+Saving:
+
+    pickle.dump(network, open("filename.p", "wb"))
+Loading:
+
+    network = pickle.load(open("filename.p", "rb"))
+    
+Note that ![pickle is not a safe way to store objects and can be tampered with](https://docs.python.org/3/library/pickle.html).
+
+
+# Full Example (test.py)
+
+Mixing all the elements spoken above, we can set up the following script:
+
+    import neuralnetwork
+    import pickle
+
+    #Creating, Training and Saving
+    network = neuralnetwork.Network([2, 3, 1], [0.2, 0.1], 0.5)
+    andGateTrainingSet = {(0, 0): (0,), (0, 1): (0,), (1, 0): (0,), (1, 1): (1,)}
+    network.debug(True) #periodically shows the average error of the training set
+    network.training(andGateTrainingSet)
+
+    pickle.dump(network, open("filename.p", "wb"))
+
+    #Loading and Using
+    loadedNetwork = pickle.load(open("filename.p", "rb"))
+    loadedNetwork.forwardPass((0, 1))
+    result = loadedNetwork.getOutput()
+    print(result) #outputs [0.001156001503972413] which is close to the intended output (0)
