@@ -1,5 +1,6 @@
 import math
 import random
+import sys
 
 class Node:
     def __init__(self):
@@ -45,6 +46,7 @@ class Network:
                         self.connections.append(Connection(begin, end))
             #set learning rate
             self.learningRate = learningRate
+            self.showError = False
         else:
             print("Network badly built. Add hidden layers and biases to the hidden layers")
     
@@ -91,9 +93,13 @@ class Network:
         #set all weighs
         for conn in self.connections:
             conn.weight = conn.newWeight
-            
+    
+    def debug(self, debug):
+        self.debug = debug
+        
     def training(self, trainingSet):
         error = 99999
+        iteration = 0
         while error > 1e-6:
             iterationError = 0
             for input, target in trainingSet.items():
@@ -101,7 +107,11 @@ class Network:
                 iterationError += self.calculateError(target)
                 self.backpropagateError(target)
             error = iterationError / len(trainingSet)    
-            
+            iteration += 1
+            if(iteration % 10000 == 0 and self.debug):
+               print(error)
+               sys.stdout.flush()
+                
     def getOutput(self):
         return [node.out for node in self.layers[-1].nodes]
         
