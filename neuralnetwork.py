@@ -5,6 +5,8 @@ class Node:
     def __init__(self):
         self.net = 0
         self.out = 0
+        self.temp = 0
+        self.newWeight = 0
         
 class Connection:
     def __init__(self, start, end):
@@ -67,16 +69,37 @@ class Network:
     def backpropagateError(self, target):
         #TODO
         #output layer propagation
-        connections = [connection for connection in self.connections if connection.end in self.layers[-1].nodes]
-        i = 0
-        for conn in connections:
-            relativeError = (conn.end.out - target[i]) * conn.end.out *(1-conn.end.out) * conn.start.out
-            conn.newWeight = conn.weight - (relativeError * self.learningRate)
-        for i in range(len(self.layers) - 2):
-            #single layer propagation
-            pass
+        for node in self.layers[-2].nodes:
+            node.temp = 0
+        for i in range(len(self.layers[-1].nodes)):
+            node = self.layers[-1].nodes[i]
+            toPropagate = (node.out - target[i]) * (node.out * (1-node.out))
+            for conn in [x for x in self.connections if x.end is node]:
+                conn.start.temp = toPropagate * conn.weight
+                conn.newWeight = conn.weight - self.learningRate * (toPropagate * conn.start.out)
         #hidden layers propagation
-        
+        for i in range(len(self.layers) - 2):
+            currentLayer = len(self.layers) - 2 - i
+            for node in self.layers[currentLayer - 1].nodes:
+                node.temp = 0
+            for i in range(len(self.layers[currentLayer].nodes)):
+                node = self.layers[currentLayer].nodes[i]
+                toPropagate = node.temp * (node.out * (1-node.out))
+                for conn in [x for x in self.connections if x.end is node]:
+                    conn.start.temp = toPropagate * conn.weight
+                    conn.newWeight = conn.weight - self.learningRate * (toPropagate * conn.start.out)
+        #set all weighs
+        for conn in self.connections:
+            conn.weight = conn.newWeight
+            
+    def training(self, trainingSet):
+        error = 99999
+        while error > 1e-10:
+            for input, target in trainingSet.items():
+                self.forwardPass(input)
+                error = self.calculateError(target)
+                self.backpropagateError(target)
+            
     def getOutput(self):
         return [node.out for node in self.layers[-1].nodes]
         
@@ -84,16 +107,16 @@ class Network:
         return [node.out for node in self.layers[0].nodes]   
         
 if __name__ == "__main__":
-    input = [0.1, 0.3]
-    target = [0.3, 0.1]
-    
+    trainingSet = {(0.1, 0.3): (0.3, 0.1), (0.2, 0.1): (0.1, 0.2), (0.6, 0.3): (0.3, 0.6)}
     x = Network([2, 3, 2], [0.3, 0.2], 0.5)
-    x.forwardPass(input)
-    x.backpropagateError(target)
-    print("Input: {0}".format(x.getInput()))
-    print("Output: {0}".format(x.getOutput()))
-    print("Target: {0}".format(target))
-    print("Error: {0}".format(x.calculateError(target)))
+    
+    x.training(trainingSet)
+    for key, value in trainingSet.items():
+        x.forwardPass(key)
+        print("Input: {0}".format(x.getInput()))
+        print("Final Output: {0}".format(x.getOutput()))
+        print("Final Error: {0}".format(x.calculateError(value)))
+    
     for i in range(len(x.layers)):
         print("---------\nLayer {0}".format(i))
         for node in x.layers[i].nodes:
